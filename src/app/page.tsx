@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Leaf, ShieldCheck, Smartphone, Users, ChevronRight, ChevronLeft, Briefcase, User, GraduationCap, X, CreditCard } from 'lucide-react'
+import { Leaf, ShieldCheck, Smartphone, Users, ChevronRight, ChevronLeft, Briefcase, User, GraduationCap, X, CreditCard, Send, MessageCircle } from 'lucide-react'
+import { saveContacto } from './actions'
 
 // Simulamos la lógica para el Modal Anti-Phishing
 const SafeLink = ({ href, children, className }: { href: string, children: React.ReactNode, className?: string }) => {
@@ -51,18 +52,42 @@ const SafeLink = ({ href, children, className }: { href: string, children: React
 export default function LandingPage() {
   const [audience, setAudience] = useState('productor') // productor, independiente, micro
   const [lang, setLang] = useState<'ES' | 'EN'>('ES')
+  
+  // Estado para asistente Anita
+  const [showAnita, setShowAnita] = useState(false);
+
+  // Estado para formulario de contacto
+  const [contactForm, setContactForm] = useState({ nombre: '', telefono: '', email: '', mensaje: '' });
+  const [contactStatus, setContactStatus] = useState('');
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactStatus('Enviando...');
+    try {
+      const res = await saveContacto(contactForm);
+      if (res.success) {
+        setContactStatus('¡Solicitud enviada exitosamente! Un asesor se comunicará pronto.');
+        setContactForm({ nombre: '', telefono: '', email: '', mensaje: '' });
+      } else {
+        setContactStatus('Error al enviar la solicitud.');
+      }
+    } catch(e) {
+      setContactStatus('Error de conexión.');
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-800 relative">
       {/* 1. Barra de Herramientas Flotantes (Top Header) */}
       <div className="bg-gray-900 text-gray-300 text-xs py-2 px-4">
         <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
           <div className="flex items-center gap-6">
-            <Link href="/soporte" className="hover:text-white transition-colors flex items-center gap-1">
+            <button onClick={() => setShowAnita(true)} className="hover:text-white transition-colors flex items-center gap-1 font-bold text-[#a3d977]">
+              <MessageCircle className="w-3 h-3" />
               <span>Asistente Anita</span>
-            </Link>
+            </button>
             <Link href="/soporte" className="hover:text-white transition-colors">Llamada Virtual / Chat</Link>
-            <Link href="/transparencia" className="hover:text-white transition-colors">Transparencia y PQR</Link>
+            <Link href="/transparencia" className="hover:text-white transition-colors">Transparencia y Reclamos</Link>
           </div>
           <div>
             <Link href="/registro" className="bg-[#a3d977] text-[#006132] font-bold px-4 py-1 rounded-full hover:bg-white transition-colors flex items-center gap-1">
@@ -79,47 +104,50 @@ export default function LandingPage() {
             <Leaf className="w-10 h-10 text-[#008c4a]" />
             <div>
               <h1 className="font-bold text-2xl text-[#006132] leading-none tracking-tight">Agrobanco</h1>
-              <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">de Colombia</p>
+              <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Perú</p>
             </div>
           </div>
           
           <div className="flex items-center gap-4">
-            <SafeLink href="https://www.pse.com.co/" className="hidden md:flex items-center gap-2 border border-[#006132] text-[#006132] hover:bg-green-50 px-5 py-2.5 rounded-lg font-bold transition-all">
-              Paga tu crédito aquí PSE
+            <SafeLink href="https://www.pagalo.pe/" className="hidden md:flex items-center gap-2 border border-[#006132] text-[#006132] hover:bg-green-50 px-5 py-2.5 rounded-lg font-bold transition-all">
+              Paga tu crédito aquí
             </SafeLink>
             
             <div className="relative group">
-              <button className="bg-[#006132] hover:bg-[#008c4a] text-white px-6 py-2.5 rounded-lg font-bold shadow-md transition-all flex items-center gap-2">
-                Ingresa a la Banca Virtual
-              </button>
-              {/* Dropdown Banca Virtual */}
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 shadow-xl rounded-xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                <Link href="/login" className="block px-4 py-3 text-gray-700 font-bold hover:bg-gray-50 hover:text-[#006132] border-b border-gray-100">Personas</Link>
-                <Link href="/login" className="block px-4 py-3 text-gray-700 font-bold hover:bg-gray-50 hover:text-[#006132]">Empresas</Link>
-              </div>
+              <Link href="/login">
+                <button className="bg-[#006132] hover:bg-[#008c4a] text-white px-6 py-2.5 rounded-lg font-bold shadow-md transition-all flex items-center gap-2">
+                  Ingresa a la Banca Virtual
+                </button>
+              </Link>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Banner */}
-      <section className="relative bg-[#006132] overflow-hidden py-20">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute transform -rotate-45 right-0 -top-1/4 w-[100%] h-[150%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
+      {/* Hero Banner with Image */}
+      <section className="relative overflow-hidden py-32 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')" }}>
+        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute transform -rotate-45 right-0 -top-1/4 w-[100%] h-[150%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#a3d977] via-transparent to-transparent"></div>
         </div>
         <div className="max-w-7xl mx-auto px-4 relative z-10 text-center">
-          <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-6">
+          <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-lg">
             {lang === 'ES' ? (
               <>Crece con el Banco que <span className="text-[#a3d977]">impulsa tu tierra</span></>
             ) : (
               <>Grow with the Bank that <span className="text-[#a3d977]">drives your land</span></>
             )}
           </h2>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-10">
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-10 drop-shadow-md font-medium">
             {lang === 'ES' 
-              ? 'Soluciones financieras ágiles y seguras para el campo y la ciudad.' 
-              : 'Agile and secure financial solutions for the countryside and the city.'}
+              ? 'Soluciones financieras ágiles y seguras para el campo y la ciudad del Perú.' 
+              : 'Agile and secure financial solutions for the countryside and the city of Peru.'}
           </p>
+          <Link href="/registro">
+             <button className="bg-[#a3d977] hover:bg-white text-[#006132] px-8 py-4 rounded-xl font-bold text-lg shadow-xl transition-colors">
+               Abre tu cuenta hoy
+             </button>
+          </Link>
         </div>
       </section>
 
@@ -182,31 +210,31 @@ export default function LandingPage() {
             {/* PRODUCTOS: Productor */}
             {audience === 'productor' && (
               <>
-                <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100 hover:shadow-lg transition-all group">
-                  <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mb-6 text-[#008c4a] group-hover:scale-110 transition-transform">
-                    <Leaf className="w-8 h-8" />
+                <div className="bg-white rounded-2xl border border-gray-200 hover:shadow-xl transition-all group relative overflow-hidden flex flex-col">
+                  <div className="h-48 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80')" }}></div>
+                  <div className="p-8 flex-1 flex flex-col">
+                    <h4 className="text-xl font-bold text-gray-900 mb-3">Crédito Agrícola</h4>
+                    <p className="text-gray-600 mb-6 text-sm flex-1">Financia los costos directos para la instalación, sostenimiento o cosecha de tus cultivos agrícolas a nivel nacional.</p>
+                    <Link href="/registro" className="text-[#008c4a] font-bold flex items-center gap-2 hover:underline">Solicitar ahora <ChevronRight className="w-4 h-4" /></Link>
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-3">Crédito Mujer Rural</h4>
-                  <p className="text-gray-600 mb-6 text-sm">Condiciones preferenciales para impulsar los proyectos liderados por mujeres campesinas.</p>
-                  <Link href="/registro" className="text-[#008c4a] font-bold flex items-center gap-2 hover:underline">Solicitar ahora <ChevronRight className="w-4 h-4" /></Link>
                 </div>
 
-                <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100 hover:shadow-lg transition-all group">
-                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:scale-110 transition-transform">
-                    <Briefcase className="w-8 h-8" />
+                <div className="bg-white rounded-2xl border border-gray-200 hover:shadow-xl transition-all group relative overflow-hidden flex flex-col">
+                  <div className="h-48 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=800&q=80')" }}></div>
+                  <div className="p-8 flex-1 flex flex-col">
+                    <h4 className="text-xl font-bold text-gray-900 mb-3">Crédito Pecuario</h4>
+                    <p className="text-gray-600 mb-6 text-sm flex-1">Capital de trabajo destinado a la crianza, engorde o producción de ganado y especies menores.</p>
+                    <Link href="/registro" className="text-blue-600 font-bold flex items-center gap-2 hover:underline">Conoce más <ChevronRight className="w-4 h-4" /></Link>
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-3">Fondo IIGRA e ICR</h4>
-                  <p className="text-gray-600 mb-6 text-sm">Accede al Incentivo a la Capitalización Rural subsidiado por el Gobierno Nacional.</p>
-                  <Link href="/registro" className="text-blue-600 font-bold flex items-center gap-2 hover:underline">Conoce más <ChevronRight className="w-4 h-4" /></Link>
                 </div>
 
-                <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100 hover:shadow-lg transition-all group">
-                  <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mb-6 text-orange-600 group-hover:scale-110 transition-transform">
-                    <CreditCard className="w-8 h-8" />
+                <div className="bg-white rounded-2xl border border-gray-200 hover:shadow-xl transition-all group relative overflow-hidden flex flex-col">
+                  <div className="h-48 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1560493676-04071c5f467b?auto=format&fit=crop&w=800&q=80')" }}></div>
+                  <div className="p-8 flex-1 flex flex-col">
+                    <h4 className="text-xl font-bold text-gray-900 mb-3">Fondo Agroperú</h4>
+                    <p className="text-gray-600 mb-6 text-sm flex-1">Programa inclusivo con tasa de interés preferencial (3.5% TEA) exclusivo para el pequeño productor agropecuario organizado.</p>
+                    <Link href="/registro" className="text-orange-600 font-bold flex items-center gap-2 hover:underline">Evaluar requisitos <ChevronRight className="w-4 h-4" /></Link>
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-3">Tarjeta Cacaotera / Palmera</h4>
-                  <p className="text-gray-600 mb-6 text-sm">Medio de pago gremial exclusivo. Compra fertilizantes y maquinaria con tasa especial.</p>
-                  <Link href="/registro" className="text-orange-600 font-bold flex items-center gap-2 hover:underline">Adquirir tarjeta <ChevronRight className="w-4 h-4" /></Link>
                 </div>
               </>
             )}
@@ -214,31 +242,31 @@ export default function LandingPage() {
             {/* PRODUCTOS: Microempresario */}
             {audience === 'micro' && (
               <>
-                <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100 hover:shadow-lg transition-all group">
-                  <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mb-6 text-purple-600 group-hover:scale-110 transition-transform">
-                    <Briefcase className="w-8 h-8" />
+                <div className="bg-white rounded-2xl border border-gray-200 hover:shadow-xl transition-all group relative overflow-hidden flex flex-col">
+                  <div className="h-48 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=800&q=80')" }}></div>
+                  <div className="p-8 flex-1 flex flex-col">
+                    <h4 className="text-xl font-bold text-gray-900 mb-3">Crédito PYME</h4>
+                    <p className="text-gray-600 mb-6 text-sm flex-1">Capital de trabajo inmediato para asegurar el inventario y operaciones de tu negocio.</p>
+                    <Link href="/registro" className="text-purple-600 font-bold flex items-center gap-2 hover:underline">Solicitar ahora <ChevronRight className="w-4 h-4" /></Link>
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-3">Crédito Capital de Trabajo</h4>
-                  <p className="text-gray-600 mb-6 text-sm">Liquidez inmediata para comprar inventario, pagar nómina o expandir tu negocio local.</p>
-                  <Link href="/registro" className="text-purple-600 font-bold flex items-center gap-2 hover:underline">Simular crédito <ChevronRight className="w-4 h-4" /></Link>
                 </div>
 
-                <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100 hover:shadow-lg transition-all group">
-                  <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mb-6 text-indigo-600 group-hover:scale-110 transition-transform">
-                    <Smartphone className="w-8 h-8" />
+                <div className="bg-white rounded-2xl border border-gray-200 hover:shadow-xl transition-all group relative overflow-hidden flex flex-col">
+                  <div className="h-48 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1601597111158-2fceff292cdc?auto=format&fit=crop&w=800&q=80')" }}></div>
+                  <div className="p-8 flex-1 flex flex-col">
+                    <h4 className="text-xl font-bold text-gray-900 mb-3">POS Agrobanco</h4>
+                    <p className="text-gray-600 mb-6 text-sm flex-1">Acepta pagos con tarjeta y recibe el dinero en tu cuenta corriente Agrobanco el mismo día.</p>
+                    <Link href="/registro" className="text-indigo-600 font-bold flex items-center gap-2 hover:underline">Solicitar POS <ChevronRight className="w-4 h-4" /></Link>
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-3">Recaudo y Datáfonos</h4>
-                  <p className="text-gray-600 mb-6 text-sm">Acepta pagos con tarjeta y recibe el dinero en tu cuenta corriente Agrobanco el mismo día.</p>
-                  <Link href="/registro" className="text-indigo-600 font-bold flex items-center gap-2 hover:underline">Solicitar datáfono <ChevronRight className="w-4 h-4" /></Link>
                 </div>
 
-                <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100 hover:shadow-lg transition-all group">
-                  <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mb-6 text-red-600 group-hover:scale-110 transition-transform">
-                    <ShieldCheck className="w-8 h-8" />
+                <div className="bg-white rounded-2xl border border-gray-200 hover:shadow-xl transition-all group relative overflow-hidden flex flex-col">
+                  <div className="h-48 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80')" }}></div>
+                  <div className="p-8 flex-1 flex flex-col">
+                    <h4 className="text-xl font-bold text-gray-900 mb-3">Seguro Protección Negocio</h4>
+                    <p className="text-gray-600 mb-6 text-sm flex-1">Protege tu local comercial contra incendios, robos y eventualidades climáticas.</p>
+                    <Link href="/registro" className="text-red-600 font-bold flex items-center gap-2 hover:underline">Cotizar seguro <ChevronRight className="w-4 h-4" /></Link>
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-3">Seguro Protección Negocio</h4>
-                  <p className="text-gray-600 mb-6 text-sm">Protege tu local comercial contra incendios, robos y eventualidades climáticas.</p>
-                  <Link href="/registro" className="text-red-600 font-bold flex items-center gap-2 hover:underline">Cotizar seguro <ChevronRight className="w-4 h-4" /></Link>
                 </div>
               </>
             )}
@@ -250,8 +278,8 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mb-6 text-[#008c4a] group-hover:scale-110 transition-transform">
                     <CreditCard className="w-8 h-8" />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-3">Cuenta de Ahorro Activo</h4>
-                  <p className="text-gray-600 mb-6 text-sm">Ahorra sin cuota de manejo y retira gratis en toda la red de cajeros Servibanca a nivel nacional.</p>
+                  <h4 className="text-xl font-bold text-gray-900 mb-3">Cuenta Ahorro Perú</h4>
+                  <p className="text-gray-600 mb-6 text-sm">Ahorra sin cuota de mantenimiento y retira gratis en toda la red de cajeros a nivel nacional.</p>
                   <Link href="/registro" className="text-[#008c4a] font-bold flex items-center gap-2 hover:underline">Abrir cuenta <ChevronRight className="w-4 h-4" /></Link>
                 </div>
 
@@ -259,7 +287,7 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:scale-110 transition-transform">
                     <User className="w-8 h-8" />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-3">Crédito de Libre Inversión</h4>
+                  <h4 className="text-xl font-bold text-gray-900 mb-3">Crédito Consumo Libre</h4>
                   <p className="text-gray-600 mb-6 text-sm">Haz realidad tus proyectos de viaje, remodelación o unifica tus deudas con nosotros.</p>
                   <Link href="/registro" className="text-blue-600 font-bold flex items-center gap-2 hover:underline">Solicitar aquí <ChevronRight className="w-4 h-4" /></Link>
                 </div>
@@ -268,12 +296,68 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-teal-100 rounded-2xl flex items-center justify-center mb-6 text-teal-600 group-hover:scale-110 transition-transform">
                     <GraduationCap className="w-8 h-8" />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-3">CDT Tasa Fija</h4>
-                  <p className="text-gray-600 mb-6 text-sm">Asegura la rentabilidad de tu dinero desde $1.000.000 COP con las mejores tasas del mercado.</p>
+                  <h4 className="text-xl font-bold text-gray-900 mb-3">Depósito Plazo Fijo</h4>
+                  <p className="text-gray-600 mb-6 text-sm">Asegura la rentabilidad de tu dinero desde S/ 1,000 con las mejores tasas del mercado.</p>
                   <Link href="/registro" className="text-teal-600 font-bold flex items-center gap-2 hover:underline">Invertir ahora <ChevronRight className="w-4 h-4" /></Link>
                 </div>
               </>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* Formulario de Contacto / Asesoría */}
+      <section className="py-20 bg-[#f4f8f4]">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div>
+            <h3 className="text-3xl font-extrabold text-[#006132] mb-6">¿Necesitas asesoría para tu próximo proyecto agrícola?</h3>
+            <p className="text-lg text-gray-700 mb-8 leading-relaxed">
+              En Agrobanco Perú estamos listos para financiar tu crecimiento. Déjanos tus datos y un asesor especializado en agronegocios se contactará contigo en menos de 24 horas.
+            </p>
+            <div className="flex gap-4 items-center">
+              <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm text-[#008c4a]">
+                <Smartphone className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-900">Atención telefónica gratuita</p>
+                <p className="text-[#008c4a] font-bold">0800 100 200</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+            <h4 className="text-xl font-bold text-gray-900 mb-6">Solicitar Asesoría</h4>
+            <form onSubmit={handleContactSubmit} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+                <input required type="text" value={contactForm.nombre} onChange={e => setContactForm({...contactForm, nombre: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#a3d977] focus:border-[#008c4a] outline-none transition-all" placeholder="Ej. Juan Pérez" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Celular</label>
+                  <input required type="tel" value={contactForm.telefono} onChange={e => setContactForm({...contactForm, telefono: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#a3d977] focus:border-[#008c4a] outline-none transition-all" placeholder="9 dígitos" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                  <input required type="email" value={contactForm.email} onChange={e => setContactForm({...contactForm, email: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#a3d977] focus:border-[#008c4a] outline-none transition-all" placeholder="correo@ejemplo.com" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mensaje o Consulta</label>
+                <textarea required value={contactForm.mensaje} onChange={e => setContactForm({...contactForm, mensaje: e.target.value})} rows={3} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#a3d977] focus:border-[#008c4a] outline-none transition-all resize-none" placeholder="¿En qué te podemos ayudar hoy?"></textarea>
+              </div>
+              
+              <button type="submit" className="w-full bg-[#006132] hover:bg-[#008c4a] text-white font-bold py-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 mt-2">
+                <Send className="w-5 h-5" />
+                Enviar Solicitud
+              </button>
+              
+              {contactStatus && (
+                <div className={`p-3 rounded-lg text-sm font-bold text-center ${contactStatus.includes('exitosamente') ? 'bg-green-50 text-green-700' : contactStatus.includes('Enviando') ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'}`}>
+                  {contactStatus}
+                </div>
+              )}
+            </form>
           </div>
         </div>
       </section>
@@ -283,7 +367,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 flex items-center gap-4 text-xs text-gray-600">
           <ShieldCheck className="w-6 h-6 text-gray-400 shrink-0" />
           <p>
-            <strong>Aviso Legal (Ley 1328 de 2009):</strong> Las tasas, tarifas y condiciones de los productos agropecuarios están sujetas a la normatividad de FINAGRO y la Superintendencia Financiera de Colombia. El Agrobanco no solicita transferencias a cuentas de terceros para la aprobación de créditos ni subsidios. Verifique siempre que se encuentra en un entorno seguro (https). Los depósitos están cubiertos por el Seguro de Depósitos FOGAFIN.
+            <strong>Aviso Legal:</strong> Las tasas, tarifas y condiciones de los productos agropecuarios están sujetas a la normatividad de la Superintendencia de Banca, Seguros y AFP (SBS) del Perú. Agrobanco no solicita transferencias a cuentas de terceros para la aprobación de créditos ni subsidios. Verifique siempre que se encuentra en un entorno seguro (https). Los depósitos están cubiertos por el Fondo de Seguro de Depósitos (FSD).
           </p>
         </div>
       </section>
@@ -296,17 +380,16 @@ export default function LandingPage() {
               <Leaf className="w-8 h-8 text-[#a3d977]" />
               <h2 className="font-bold text-2xl text-white">Agrobanco</h2>
             </div>
-            <p className="text-sm text-gray-400 mb-6">Sede Principal: Calle 16 No. 6-66, Bogotá D.C.<br/>Línea Gratuita: 01 8000 91 5000</p>
+            <p className="text-sm text-gray-400 mb-6">Sede Principal: Av. Paseo de la República 3121, San Isidro, Lima, Perú.<br/>Central Telefónica: (01) 615-0000</p>
             <div className="flex gap-4">
-              {/* Logos de vigilancia estáticos text */}
-              <span className="text-[10px] uppercase border border-gray-700 p-2 rounded text-gray-500 font-bold">Vigilado Superfinanciera</span>
+              <span className="text-[10px] uppercase border border-gray-700 p-2 rounded text-gray-500 font-bold">Vigilado SBS</span>
             </div>
           </div>
 
           <div>
             <h4 className="text-white font-bold mb-6">Documentación Técnica</h4>
             <ul className="space-y-3 text-sm">
-              <li><SafeLink href="/portafolio.pdf" className="hover:text-white transition-colors">Portafolio Ganadero (PDF)</SafeLink></li>
+              <li><SafeLink href="/portafolio.pdf" className="hover:text-white transition-colors">Portafolio Agropecuario (PDF)</SafeLink></li>
               <li><SafeLink href="/tasas.pdf" className="hover:text-white transition-colors">Tasas y Tarifas 2026</SafeLink></li>
               <li><SafeLink href="/seguridad" className="hover:text-white transition-colors">Políticas de Privacidad</SafeLink></li>
             </ul>
@@ -315,9 +398,9 @@ export default function LandingPage() {
           <div>
             <h4 className="text-white font-bold mb-6">Transparencia</h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/pqr" className="hover:text-white transition-colors">Módulo PQR</Link></li>
-              <li><Link href="/denuncias" className="hover:text-white transition-colors">Línea Transparente Anticorrupción</Link></li>
-              <li><Link href="/ley-acceso" className="hover:text-white transition-colors">Ley de Acceso a la Información</Link></li>
+              <li><Link href="/pqr" className="hover:text-white transition-colors">Libro de Reclamaciones</Link></li>
+              <li><Link href="/denuncias" className="hover:text-white transition-colors">Canal de Denuncias</Link></li>
+              <li><Link href="/ley-acceso" className="hover:text-white transition-colors">Transparencia de Información</Link></li>
             </ul>
           </div>
 
@@ -351,9 +434,42 @@ export default function LandingPage() {
         </div>
         
         <div className="max-w-7xl mx-auto px-4 text-center text-xs text-gray-500">
-          &copy; {new Date().getFullYear()} Agrobanco. Todos los derechos reservados.
+          &copy; {new Date().getFullYear()} Agrobanco Perú. Todos los derechos reservados.
         </div>
       </footer>
+
+      {/* Asistente Anita Modal */}
+      {showAnita && (
+        <div className="fixed bottom-4 right-4 z-50 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
+          <div className="bg-[#006132] text-white p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#006132]">
+                <MessageCircle className="w-5 h-5" />
+              </div>
+              <span className="font-bold">Asistente Anita</span>
+            </div>
+            <button onClick={() => setShowAnita(false)} className="text-white/80 hover:text-white">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-4 bg-gray-50 h-64 overflow-y-auto flex flex-col gap-3">
+            <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-sm text-sm text-gray-700 border border-gray-100 max-w-[85%]">
+              ¡Hola! Soy Anita, tu asistente virtual agropecuaria. ¿En qué te puedo ayudar hoy?
+            </div>
+            <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-sm text-sm text-gray-700 border border-gray-100 max-w-[85%]">
+              Puedes consultarme sobre créditos, tasas de interés, o ubicación de agencias.
+            </div>
+          </div>
+          <div className="p-3 bg-white border-t border-gray-100">
+            <form onSubmit={(e) => { e.preventDefault(); alert("En esta versión demo, Anita está aprendiendo nuevas respuestas. ¡Pronto estará lista!"); setShowAnita(false); }} className="flex gap-2">
+              <input type="text" placeholder="Escribe tu mensaje..." className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-[#008c4a]" />
+              <button type="submit" className="bg-[#006132] text-white p-2 rounded-lg hover:bg-[#008c4a] transition-colors">
+                <Send className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
