@@ -18,9 +18,9 @@ export default async function DashboardPage() {
   // Fetch real data from backend
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
   
-  let cuenta = { numero_cuenta: '---', saldo: 0, trea: 3.50, id: null };
-  let movimientos = [];
-  let creditos = [];
+  let cuenta: any = { numero_cuenta: '---', saldo: 0, trea: 3.50, id: null };
+  let movimientos: any[] = [];
+  let creditos: any[] = [];
   
   try {
     const resResumen = await fetch(`${apiUrl}/cuentas/resumen?userId=${user.id}`);
