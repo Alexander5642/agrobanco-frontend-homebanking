@@ -101,7 +101,7 @@ export default function LandingPage() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Leaf className="w-10 h-10 text-[#008c4a]" />
+            <img src="/logo.png" alt="Agrobanco Logo" className="w-10 h-10 text-[#008c4a] object-contain" />
             <div>
               <h1 className="font-bold text-2xl text-[#006132] leading-none tracking-tight">Agrobanco</h1>
               <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Perú</p>
@@ -377,7 +377,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-gray-800 pb-12 mb-8">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <Leaf className="w-8 h-8 text-[#a3d977]" />
+              <img src="/logo.png" alt="Agrobanco Logo" className="w-8 h-8 text-[#a3d977] object-contain" />
               <h2 className="font-bold text-2xl text-white">Agrobanco</h2>
             </div>
             <p className="text-sm text-gray-400 mb-6">Sede Principal: Av. Paseo de la República 3121, San Isidro, Lima, Perú.<br/>Central Telefónica: (01) 615-0000</p>

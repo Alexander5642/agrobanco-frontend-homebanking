@@ -40,7 +40,7 @@ function LoginForm() {
   return (
     <div className="w-full max-w-md">
       <div className="flex items-center gap-3 mb-8 lg:hidden">
-        <Leaf className="w-8 h-8 text-[#008c4a]" />
+        <img src="/logo.png" alt="Agrobanco Logo" className="w-8 h-8 text-[#008c4a] object-contain" />
         <h1 className="font-bold text-2xl text-[#006132]">Agrobanco</h1>
       </div>
 
@@ -205,7 +205,7 @@ function LoginCarousel() {
           </div>
           
           <div className="absolute bottom-0 left-0 right-0 p-12 text-white">
-            <Leaf className="w-16 h-16 text-[#a3d977] mb-6 drop-shadow-md" />
+            <img src="/logo.png" alt="Agrobanco Logo" className="w-16 h-16 text-[#a3d977] mb-6 drop-shadow-md object-contain" />
             <h2 className="text-4xl font-bold mb-4 drop-shadow-md">{slide.title}</h2>
             <p className="text-lg text-white/90 drop-shadow max-w-md">
               {slide.description}
