@@ -1,6 +1,5 @@
 'use client'
 
-import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Leaf, LayoutDashboard, Wallet, CreditCard, ArrowRightLeft, Activity, User, LogOut } from 'lucide-react'
@@ -81,9 +80,8 @@ export default function Sidebar() {
             </div>
           </div>
           <button 
-            onClick={async () => {
-              const supabase = createClient()
-              await supabase.auth.signOut()
+            onClick={() => {
+              document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
               window.location.href = '/login'
             }}
             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
