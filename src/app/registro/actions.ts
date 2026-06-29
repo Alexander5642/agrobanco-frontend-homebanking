@@ -2,11 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
 
 export async function signup(formData: FormData) {
-  const supabase = await createClient()
-
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   
@@ -18,34 +15,34 @@ export async function signup(formData: FormData) {
   const fecha_nacimiento = formData.get('fecha_nacimiento') as string
   const direccion = formData.get('direccion') as string
 
-  // 1. Crear el usuario en Auth
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  })
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
-  if (error) {
-    return redirect('/registro?error=' + error.message)
-  }
-
-  // 2. Insertar en tabla clientes si el registro fue exitoso
-  if (data.user) {
-     const { error: clienteError } = await supabase.from('clientes').insert({
-        id: data.user.id,
+  try {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        password,
         nombres,
         apellidos,
         dni,
         celular,
         fecha_nacimiento,
         direccion
-     })
-     
-     if (clienteError) {
-         // Log the error but don't fail completely since auth succeeded
-         console.error("Error guardando cliente:", clienteError)
-     }
+      })
+    });
+
+    const result = await res.json();
+
+    if (!result.success) {
+      return redirect('/registro?error=' + encodeURIComponent(result.message || 'Error en el registro'));
+    }
+
+  } catch (error: any) {
+    return redirect('/registro?error=' + encodeURIComponent(error?.message || 'Error de conexión con el servidor'));
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/')
+  revalidatePath('/login', 'layout')
+  redirect('/login')
 }

@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
+import pool from './db';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const JWT_SECRET = process.env.JWT_SECRET || 'secreto_agrobanco_super_seguro_123';
 
 export async function getUser() {
   const cookieStore = await cookies();
@@ -11,40 +13,67 @@ export async function getUser() {
   }
 
   try {
-    const res = await fetch(`${API_URL}/auth/me`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (res.ok) {
-      const { data } = await res.json();
-      return { user: data, token };
+    const decoded: any = jwt.verify(token, JWT_SECRET);
+    const { rows } = await pool.query('SELECT * FROM usuarios WHERE id = $1', [decoded.id]);
+    
+    if (rows.length > 0) {
+      const user = rows[0];
+      return { 
+        user: { 
+          id: user.id, 
+          email: user.email, 
+          rol: user.rol, 
+          nombres: user.nombres, 
+          apellidos: user.apellidos, 
+          dni: user.dni 
+        }, 
+        token 
+      };
     }
-  } catch(e) {}
+  } catch(e) {
+    console.error("Error validando token:", e);
+  }
   
   return { user: null };
 }
 
 export async function loginUser(email: string, password?: string) {
   try {
-    const res = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const result = await res.json();
+    const { rows } = await pool.query('SELECT * FROM usuarios WHERE email = $1 OR dni = $1', [email]);
     
-    if (result.success && result.data) {
-      const cookieStore = await cookies();
-      cookieStore.set('auth_token', result.data.token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60 * 24 * 7,
-        path: '/',
-      });
-      return { user: result.data.usuario, error: null };
+    if (rows.length === 0) {
+      return { user: null, error: 'Credenciales inválidas' };
     }
-    return { user: null, error: result.message || 'Credenciales inválidas' };
+    
+    const user = rows[0];
+    if (user.password !== password) {
+      return { user: null, error: 'Credenciales inválidas' };
+    }
+    
+    const token = jwt.sign({ id: user.id, email: user.email, rol: user.rol }, JWT_SECRET, { expiresIn: '1d' });
+    
+    const cookieStore = await cookies();
+    cookieStore.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24, // 1 day
+      path: '/',
+    });
+    
+    return { 
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        rol: user.rol, 
+        nombres: user.nombres, 
+        apellidos: user.apellidos, 
+        dni: user.dni 
+      }, 
+      error: null 
+    };
   } catch (error: any) {
-    return { user: null, error: 'Error de conexión con el servidor (Vercel no puede acceder al localhost)' };
+    console.error("Error en loginDB:", error);
+    return { user: null, error: 'Error de conexión con la base de datos' };
   }
 }
 

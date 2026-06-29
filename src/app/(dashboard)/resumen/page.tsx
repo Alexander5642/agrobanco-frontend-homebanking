@@ -1,6 +1,7 @@
 import ResumenClient from './ResumenClient'
 import { getUser } from '@/lib/localAuth'
 import { redirect } from 'next/navigation'
+import pool from '@/lib/db'
 
 export const dynamic = 'force-dynamic';
 
@@ -15,29 +16,23 @@ export default async function DashboardPage() {
     redirect('/admin')
   }
 
-  // Fetch real data from backend
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-  
   let cuenta: any = { numero_cuenta: '---', saldo: 0, trea: 3.50, id: null };
   let movimientos: any[] = [];
   let creditos: any[] = [];
   
   try {
-    const resResumen = await fetch(`${apiUrl}/cuentas/resumen?userId=${user.id}`);
-    if (resResumen.ok) {
-      const data = await resResumen.json();
-      if (data.cuentas && data.cuentas.length > 0) {
-        cuenta = data.cuentas[0];
-        movimientos = cuenta.movimientos || [];
-      }
+    const cuentaRes = await pool.query('SELECT * FROM cuentas WHERE user_id = $1', [user.id]);
+    if (cuentaRes.rows.length > 0) {
+      cuenta = cuentaRes.rows[0];
+      
+      const movRes = await pool.query('SELECT * FROM movimientos WHERE cuenta_id = $1 ORDER BY creado_en DESC', [cuenta.id]);
+      movimientos = movRes.rows;
     }
     
-    const resCreditos = await fetch(`${apiUrl}/creditos?userId=${user.id}`);
-    if (resCreditos.ok) {
-      creditos = await resCreditos.json();
-    }
+    const credRes = await pool.query('SELECT * FROM creditos WHERE user_id = $1', [user.id]);
+    creditos = credRes.rows;
   } catch (error) {
-    console.error("Error fetching data from API:", error);
+    console.error("Error fetching data from DB:", error);
   }
 
   return <ResumenClient user={user} cuenta={cuenta} movimientosTotales={movimientos} creditos={creditos} />
