@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import pool from '@/lib/db'
 
 export async function signup(formData: FormData) {
   const email = formData.get('email') as string
@@ -15,32 +16,20 @@ export async function signup(formData: FormData) {
   const fecha_nacimiento = formData.get('fecha_nacimiento') as string
   const direccion = formData.get('direccion') as string
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-
   try {
-    const res = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        password,
-        nombres,
-        apellidos,
-        dni,
-        celular,
-        fecha_nacimiento,
-        direccion
-      })
-    });
-
-    const result = await res.json();
-
-    if (!result.success) {
-      return redirect('/registro?error=' + encodeURIComponent(result.message || 'Error en el registro'));
+    const { rows } = await pool.query('SELECT * FROM usuarios WHERE email = $1 OR dni = $2', [email, dni]);
+    if (rows.length > 0) {
+      return redirect('/registro?error=' + encodeURIComponent('El correo o DNI ya están registrados'));
     }
 
+    await pool.query(
+      `INSERT INTO usuarios (nombres, apellidos, email, password, dni, celular, direccion, rol) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'CLIENTE')`,
+      [nombres, apellidos, email, password, dni, celular, direccion]
+    );
   } catch (error: any) {
-    return redirect('/registro?error=' + encodeURIComponent(error?.message || 'Error de conexión con el servidor'));
+    console.error("Registration error:", error);
+    return redirect('/registro?error=' + encodeURIComponent('Error de conexión con la base de datos'));
   }
 
   revalidatePath('/login', 'layout')
