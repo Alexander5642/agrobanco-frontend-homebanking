@@ -1,5 +1,5 @@
 import { getUser } from '@/lib/localAuth'
-import { readDB } from '@/data/db'
+import pool from '@/lib/db'
 import ProfileForm from './ProfileForm'
 import { redirect } from 'next/navigation'
 
@@ -12,10 +12,28 @@ export default async function PerfilPage() {
     redirect('/login')
   }
 
-  const db = readDB()
+  // Fetch full user data from DB including celular and direccion
+  let fullUser: any = user;
+  try {
+    const { rows } = await pool.query('SELECT * FROM usuarios WHERE id = $1', [user.id]);
+    if (rows.length > 0) {
+      fullUser = rows[0];
+    }
+  } catch(e) {
+    console.error("Error fetching full user:", e);
+  }
 
-  let cliente = { nombres: user.nombres, apellidos: user.apellidos, dni: user.dni, celular: user.celular || '', direccion: user.direccion || '' }
-  let tarjeta = db.tarjetas.find(t => t.user_id === user.id) || null
+  let cliente = { nombres: fullUser.nombres, apellidos: fullUser.apellidos, dni: fullUser.dni, celular: fullUser.celular || '', direccion: fullUser.direccion || '' }
+  
+  let tarjeta: any = null;
+  try {
+    const { rows } = await pool.query('SELECT * FROM tarjetas WHERE user_id = $1', [user.id]);
+    if (rows.length > 0) {
+      tarjeta = rows[0];
+    }
+  } catch(e) {
+    console.error("Error fetching tarjeta:", e);
+  }
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-6">

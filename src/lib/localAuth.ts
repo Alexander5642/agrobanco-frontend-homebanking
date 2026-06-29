@@ -1,8 +1,10 @@
 import { cookies } from 'next/headers';
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 import pool from './db';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secreto_agrobanco_super_seguro_123';
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'secreto_agrobanco_super_seguro_123'
+);
 
 export async function getUser() {
   const cookieStore = await cookies();
@@ -13,8 +15,8 @@ export async function getUser() {
   }
 
   try {
-    const decoded: any = jwt.verify(token, JWT_SECRET);
-    const { rows } = await pool.query('SELECT * FROM usuarios WHERE id = $1', [decoded.id]);
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { rows } = await pool.query('SELECT * FROM usuarios WHERE id = $1', [payload.id]);
     
     if (rows.length > 0) {
       const user = rows[0];
@@ -50,13 +52,16 @@ export async function loginUser(email: string, password?: string) {
       return { user: null, error: 'Credenciales inválidas' };
     }
     
-    const token = jwt.sign({ id: user.id, email: user.email, rol: user.rol }, JWT_SECRET, { expiresIn: '1d' });
+    const token = await new SignJWT({ id: user.id, email: user.email, rol: user.rol })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setExpirationTime('1d')
+      .sign(JWT_SECRET);
     
     const cookieStore = await cookies();
     cookieStore.set('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: 60 * 60 * 24,
       path: '/',
     });
     
