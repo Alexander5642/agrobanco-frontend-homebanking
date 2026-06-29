@@ -16,9 +16,19 @@ export async function solicitarCredito(formData: FormData) {
   if (isNaN(meses) || meses < 1) throw new Error("Plazo inválido")
   
   try {
+    const tea = 43.92;
+    const tem = Math.pow(1 + (tea / 100), 1 / 12) - 1;
+    const cuota = monto * ((tem * Math.pow(1 + tem, meses)) / (Math.pow(1 + tem, meses) - 1));
+    const total = cuota * meses;
+    const intereses = total - monto;
+    
+    // Check if crypto is available (Node.js)
+    const crypto = require('crypto');
+    const id = "CRD-" + crypto.randomBytes(4).toString('hex').toUpperCase();
+
     await pool.query(
-      'INSERT INTO creditos (user_id, monto, meses, tea, estado) VALUES ($1, $2, $3, $4, $5)',
-      [user.id, monto, meses, 43.92, 'PRE_SOLICITUD']
+      'INSERT INTO creditos (id, user_id, monto, meses, tea, cuota_mes, intereses, total, estado) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      [id, user.id, monto, meses, tea, cuota, intereses, total, 'PENDIENTE']
     );
   } catch (error: any) {
     console.error("DB Insert error:", error);
