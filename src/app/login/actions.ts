@@ -13,7 +13,7 @@ export async function login(formData: FormData) {
   const { user, error } = await loginUser(email, password)
 
   if (error || !user) {
-    return redirect('/login?error=Credenciales invalidas')
+    return redirect(`/login?error=${encodeURIComponent(error || 'Credenciales invalidas')}`)
   }
 
   // Redirección

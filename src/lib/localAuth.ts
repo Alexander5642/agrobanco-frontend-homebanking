@@ -42,9 +42,9 @@ export async function loginUser(email: string, password?: string) {
       });
       return { user: result.data.usuario, error: null };
     }
-    return { user: null, error: new Error(result.message || 'Error') };
-  } catch (error) {
-    return { user: null, error };
+    return { user: null, error: result.message || 'Credenciales inválidas' };
+  } catch (error: any) {
+    return { user: null, error: 'Error de conexión con el servidor (Vercel no puede acceder al localhost)' };
   }
 }
 
