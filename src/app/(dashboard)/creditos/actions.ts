@@ -2,6 +2,7 @@
 
 import { getUser } from '@/lib/localAuth'
 import { revalidatePath } from 'next/cache'
+import pool from '@/lib/db'
 
 export async function solicitarCredito(formData: FormData) {
   const { user, token } = await getUser()
@@ -13,21 +14,15 @@ export async function solicitarCredito(formData: FormData) {
   
   if (isNaN(monto) || monto < 1000) throw new Error("El monto mínimo es S/ 1,000")
   if (isNaN(meses) || meses < 1) throw new Error("Plazo inválido")
-
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
   
-  const res = await fetch(`${apiUrl}/creditos/solicitar`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify({ monto, meses })
-  });
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || "Error al solicitar crédito en el servidor");
+  try {
+    await pool.query(
+      'INSERT INTO creditos (user_id, monto, meses, tea, estado) VALUES ($1, $2, $3, $4, $5)',
+      [user.id, monto, meses, 43.92, 'PRE_SOLICITUD']
+    );
+  } catch (error: any) {
+    console.error("DB Insert error:", error);
+    throw new Error("Error al solicitar crédito en la base de datos");
   }
 
   revalidatePath('/', 'layout')
