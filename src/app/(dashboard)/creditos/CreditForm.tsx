@@ -92,17 +92,28 @@ export default function CreditForm({ creditos }: { creditos: any[] }) {
                 </div>
               </div>
 
-              <div className="bg-brand-dark rounded-xl p-6 text-white flex justify-between items-center relative overflow-hidden shadow-sm">
+              <div className="bg-brand-dark rounded-xl p-6 text-white flex flex-col relative overflow-hidden shadow-sm gap-4">
                 <div className="absolute right-0 top-0 w-32 h-32 bg-white opacity-5 rounded-full translate-x-1/3 -translate-y-1/4"></div>
-                <div>
-                  <p className="text-white/80 text-sm mb-1">Tu cuota mensual aproximada será de</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-brand-accent">{formatMoney(cuota)}</span>
+                
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-white/80 text-sm mb-1">Total a Pagar (Cuota Única al Vencimiento)</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl font-bold text-brand-accent">{formatMoney(cuota + 150)}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white/60 text-xs mb-1 uppercase tracking-wider">TEA FIFPPA</p>
+                    <p className="font-bold text-lg">12.50%</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-white/60 text-xs mb-1 uppercase tracking-wider">TEA</p>
-                  <p className="font-bold text-lg">43.92%</p>
+
+                <div className="bg-white/10 rounded-lg p-3 text-sm flex items-center justify-between border border-white/20">
+                  <span className="text-white/90 font-medium flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    Seguro Agrícola Obligatorio
+                  </span>
+                  <span className="font-bold">S/ 150.00</span>
                 </div>
               </div>
             </div>
