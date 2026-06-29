@@ -1,5 +1,5 @@
 import { getUser } from '@/lib/localAuth'
-import { readDB } from '@/data/db'
+import pool from '@/lib/db'
 import CreditForm from './CreditForm'
 import { redirect } from 'next/navigation'
 
@@ -12,11 +12,17 @@ export default async function CreditosPage() {
     redirect('/login')
   }
 
-  const db = readDB()
+  const { rows } = await pool.query(
+    'SELECT * FROM creditos WHERE user_id = $1 ORDER BY creado_en DESC',
+    [user.id]
+  );
   
-  let creditos = db.creditos
-    .filter(c => c.user_id === user.id)
-    .sort((a, b) => new Date(b.creado_en).getTime() - new Date(a.creado_en).getTime())
+  // Format dates to strings for Next.js boundary
+  const creditos = rows.map(c => ({
+    ...c,
+    creado_en: c.creado_en ? new Date(c.creado_en).toISOString() : new Date().toISOString(),
+    monto: Number(c.monto)
+  }));
 
   return <CreditForm creditos={creditos} />
 }
