@@ -9,6 +9,7 @@ import { useSearchParams } from 'next/navigation'
 function LoginForm() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
+  const success = searchParams.get('success')
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -128,6 +129,12 @@ function LoginForm() {
               </div>
             </div>
           </div>
+
+          {success && (
+            <div className="text-green-700 text-sm p-3 bg-green-50 rounded-lg border border-green-200 text-center font-medium">
+              {success}
+            </div>
+          )}
 
           {error && (
             <div className="text-red-500 text-sm p-3 bg-red-50 rounded-lg border border-red-200 text-center font-medium">

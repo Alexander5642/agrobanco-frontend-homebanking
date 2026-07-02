@@ -14,7 +14,7 @@ export default function CreditForm({ creditos }: { creditos: any[] }) {
   const [meses, setMeses] = useState('24')
   
   const m = parseFloat(monto) || 0
-  const tea = 43.92
+  const tea = 12.50  // TEA oficial Agrobanco Perú
   const tem = Math.pow(1 + (tea / 100), 1 / 12) - 1
   const mesesInt = parseInt(meses || '1')
   const cuota = m > 0 ? m * ((tem * Math.pow(1 + tem, mesesInt)) / (Math.pow(1 + tem, mesesInt) - 1)) : 0
@@ -43,7 +43,7 @@ export default function CreditForm({ creditos }: { creditos: any[] }) {
           <p className="text-gray-500">Solicita financiamiento con las mejores tasas del mercado</p>
         </div>
         <div className="bg-brand-accent/20 text-brand-dark px-4 py-2 rounded-lg font-bold text-sm border border-brand-accent/30 shadow-sm">
-          TEA desde 40.92%
+          TEA 12.50% anual
         </div>
       </div>
 

@@ -1,9 +1,9 @@
 import { RefreshCw, Percent, ShieldCheck, Clock, Smartphone, Wallet, ArrowDownRight, ArrowRightLeft, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 import { getUser } from '@/lib/localAuth'
-import { readDB } from '@/data/db'
 import { redirect } from 'next/navigation'
 import DepositButton from './DepositButton'
+import pool from '@/lib/db'
 
 export const dynamic = 'force-dynamic';
 
@@ -14,15 +14,26 @@ export default async function AhorrosPage() {
     redirect('/login')
   }
 
-  const db = readDB()
-  
-  const cuenta = db.cuentas.find(c => c.user_id === user.id) || { numero_cuenta: '---', saldo: 0, trea: 1.50, tem: 0.1241, id: null }
-  
-  const movimientos = db.movimientos
-    .filter(m => m.cuenta_id === cuenta.id && m.es_ingreso)
-    .sort((a, b) => new Date(b.creado_en).getTime() - new Date(a.creado_en).getTime())
+  let cuenta: any = { numero_cuenta: '---', saldo: 0, trea: 1.50, tem: 0.1241, id: null };
+  let movimientos: any[] = [];
+
+  try {
+    const cuentaRes = await pool.query('SELECT * FROM cuentas WHERE user_id = $1 LIMIT 1', [user.id]);
+    if (cuentaRes.rows.length > 0) {
+      cuenta = cuentaRes.rows[0];
+      // Solo movimientos de ingreso para la sección de ahorros
+      const movRes = await pool.query(
+        'SELECT * FROM movimientos WHERE cuenta_id = $1 AND es_ingreso = true ORDER BY creado_en DESC',
+        [cuenta.id]
+      );
+      movimientos = movRes.rows;
+    }
+  } catch (error) {
+    console.error('Error fetching ahorros data:', error);
+  }
 
   const formatMoney = (amount: number) => `S/ ${Number(amount).toFixed(2)}`
+
 
   return (
     <div className="max-w-6xl mx-auto flex flex-col gap-6">

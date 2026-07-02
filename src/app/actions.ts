@@ -1,25 +1,16 @@
 'use server'
 
-import { readDB, writeDB } from '@/data/db';
+import pool from '@/lib/db';
 
 export async function saveContacto(contactForm: { nombre: string; telefono: string; email: string; mensaje: string }) {
   try {
-    const db = readDB();
-    if (!db.solicitudes_publicas) {
-      db.solicitudes_publicas = [];
-    }
-
-    const newContacto = {
-      id: `cont-${Date.now()}`,
-      nombres: contactForm.nombre,
-      telefono: contactForm.telefono,
-      email: contactForm.email,
-      mensaje: contactForm.mensaje,
-      creado_en: new Date().toISOString()
-    };
-
-    db.solicitudes_publicas.push(newContacto);
-    writeDB(db);
+    const contactoId = `cont-${Date.now()}`;
+    
+    await pool.query(
+      `INSERT INTO solicitudes_publicas (id, tipo, nombres, documento, telefono, email, mensaje, estado) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [contactoId, 'CONTACTO', contactForm.nombre, '---', contactForm.telefono, contactForm.email, contactForm.mensaje, 'PENDIENTE']
+    );
 
     return { success: true };
   } catch (error) {
